@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\Inspire::class,
+        Commands\RunRacing::class,
     ];
 
     /**
@@ -24,20 +25,5 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $SystemSwitch = Cache::rememberForever('SystemSwitch', function() {
-            return false;
-        });
-
-        if ($SystemSwitch) {
-            \Cache::forever('periodNumber', $mRacing->periodNumber - 1);
-            $mRacing = \App\Racing::where('expired', 0)->OrderBy('awardTime', 'desc')->first();
-            \Cache::forever('periodNumber', $mRacing->periodNumber - 1);
-
-            $schedule->call(function () use ($mRacing) {
-                \Event::fire(new \App\Events\CreateRacing($mRacing));
-            })->everyMinute()->when(function() use ($mRacing){
-                return \Carbon\Carbon::now() >= $mRacing->awardTime;
-            });
-        }
     }
 }

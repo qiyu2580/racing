@@ -27,15 +27,17 @@ class CreateRacingListener
      */
     public function handle(CreateRacing $event)
     {
-        $TimeInterval = Cache::rememberForever('TimeInterval', function() {
+        $TimeInterval = \Cache::rememberForever('TimeInterval', function() {
             return 5;
         });
 
         $awardNumbers = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
             ->shuffle()->implode(',');
         $periodNumber = $event->currentRacing->periodNumber + 1;
-        $awardTime = $event->currentRacing->awardTime->addMinute($TimeInterval);
-        $this->mRacing->create(compact('awardNumbers', 'periodNumber', 'awardTime'));
+        $awardTime = \Carbon\Carbon::now()->addMinute($TimeInterval);
+        $mRacing = $this->mRacing->create(compact('awardNumbers', 'periodNumber', 'awardTime'));
+
+        \Cache::forever('mRacing', $mRacing);
 
         $event->currentRacing->expired = true;
         $event->currentRacing->save();
