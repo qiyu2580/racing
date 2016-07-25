@@ -21,6 +21,7 @@ $calAwardTimeInterval = function ($awardTime) {
 };
 
 $guanjun = function ($mRacing) {
+    $data = [];
     foreach ($mRacing as $item) {
         $item['awardNumbers'] = explode(',', $item['awardNumbers']);
         $data[$item['periodNumber']][0] = $item['awardNumbers'][0] + $item['awardNumbers'][1];
@@ -31,6 +32,7 @@ $guanjun = function ($mRacing) {
 };
 
 $longhu = function ($mRacing) {
+    $data = [];
     foreach ($mRacing as $item) {
         $data[$item['periodNumber']][0] = $item['awardNumbers'][0] > $item['awardNumbers'][9] ? "龙" : "虎";
         $data[$item['periodNumber']][1] = $item['awardNumbers'][1] > $item['awardNumbers'][8] ? "龙" : "虎";
