@@ -20,8 +20,36 @@ $calAwardTimeInterval = function ($awardTime) {
     return round(strtotime($awardTime) - $calMicrotime(), 3) * 1000;
 };
 
-Route::get('/', function () {
-    return view('index');
+$guanjun = function ($mRacing) {
+    foreach ($mRacing as $item) {
+        $item['awardNumbers'] = explode(',', $item['awardNumbers']);
+        $data[$item['periodNumber']][0] = $item['awardNumbers'][0] + $item['awardNumbers'][1];
+        $data[$item['periodNumber']][1] = 11 < $data[$item['periodNumber']][0] ? '大' : '小';
+        $data[$item['periodNumber']][2] = 0 === $data[$item['periodNumber']][0] % 2 ? '双' : '单';
+    }
+    return $data;
+};
+
+$longhu = function ($mRacing) {
+    foreach ($mRacing as $item) {
+        $data[$item['periodNumber']][0] = $item['awardNumbers'][0] > $item['awardNumbers'][9] ? "龙" : "虎";
+        $data[$item['periodNumber']][1] = $item['awardNumbers'][1] > $item['awardNumbers'][8] ? "龙" : "虎";
+        $data[$item['periodNumber']][2] = $item['awardNumbers'][2] > $item['awardNumbers'][7] ? "龙" : "虎";
+        $data[$item['periodNumber']][3] = $item['awardNumbers'][3] > $item['awardNumbers'][6] ? "龙" : "虎";
+        $data[$item['periodNumber']][4] = $item['awardNumbers'][4] > $item['awardNumbers'][5] ? "龙" : "虎";
+    }
+    return $data;
+};
+
+Route::get('/', function () use ($guanjun, $longhu) {
+    $mRacing = \App\Racing::where('expired', 1)->orderBy('periodNumber', 'desc')->take(12)->get();
+    $gj = $guanjun($mRacing);
+    $lh = $longhu($mRacing);
+    return view('index', compact('mRacing', 'gj', 'lh'));
+});
+
+Route::get('/pk10', function () {
+    return view('pk10');
 });
 
 Route::get('/ajax', function() use ($calAwardTimeInterval) {
