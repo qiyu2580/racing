@@ -44,7 +44,13 @@ $longhu = function ($mRacing) {
 };
 
 Route::get('/', function () use ($guanjun, $longhu) {
-    $mRacing = \App\Racing::where('expired', 1)->orderBy('periodNumber', 'desc')->take(12)->get();
+
+    \Carbon\Carbon::now()->addDay()->toDateString();
+    $mRacing = \App\Racing::where('expired', 1)->where(
+        'awardTime', '<',\Carbon\Carbon::now()->addDay()->toDateString()
+        )->where(
+        'awardTime', '>',\Carbon\Carbon::now()->toDateString()
+        )->orderBy('periodNumber', 'desc')->get();
     $gj = $guanjun($mRacing);
     $lh = $longhu($mRacing);
     return view('index', compact('mRacing', 'gj', 'lh'));
@@ -75,7 +81,7 @@ Route::get('now', function () {
     echo \Carbon\Carbon::now();
 });
 
-Route::get('admin', function() use ($calAwardTimeInterval) {
+Route::get('admin', ['middleware' => 'login', function() use ($calAwardTimeInterval) {
     $periodNumber = \Cache::get('periodNumber');
     $Racing = App\Racing::OfCurrentAndNext($periodNumber)->get();
 
@@ -84,16 +90,16 @@ Route::get('admin', function() use ($calAwardTimeInterval) {
     $res['awardNumbers'] = explode(',', $Racing[1]->awardNumbers);
 
     return view('admin', ['mRacing' => $res]);
-});
+}]);
 
-Route::post('update', function (\Illuminate\Http\Request $request) {
+Route::post('update', ['middleware' => 'login', function (\Illuminate\Http\Request $request) {
     $periodNumber = $request->input('periodNumber');
     $awardNumbers = $request->input('awardNumbers');
 
     $mRacing = \App\Racing::where('expired', 0)->Where('periodNumber', $periodNumber)->first();
     $mRacing->awardNumbers = $awardNumbers;
     $mRacing->save();
-});
+}]);
 
 Route::get('setting', function() {
     $TimeInterval = Cache::rememberForever('TimeInterval', function() {
@@ -113,3 +119,19 @@ Route::post('setting', function(\Illuminate\Http\Request $request) {
     Cache::forever('SystemSwitch', $SystemSwitch);
     return back()->withInput();
 });
+
+// 认证路由...
+Route::get('auth/login', function() {
+     return view('auth.login');
+});
+Route::post('auth/login', function (\Illuminate\Http\Request $request) {
+    $password = $request->input('password');
+    if ($password == env('admin', 'admin!@#456')) {
+        $request->session()->put('login', true);
+        return redirect('/admin');
+    } else {
+        $request->session()->put('login', false);
+        return redirect('auth/login');
+    }
+});
+Route::get('auth/logout', 'Auth\AuthController@getLogout');
