@@ -11,9 +11,11 @@ class Racing extends Model
     protected $dates = ['awardTime'];
     protected $fillable = ['periodNumber', 'awardTime', 'awardNumbers'];
 
-    public function scopeOfCurrentAndNext($query, $periodNumber)
+    public function scopeOfCurrentAndNext($query)
     {
-        return $query->where('periodNumber', $periodNumber)
-            ->orWhere('periodNumber', $periodNumber + 1);
+        return $query->where('expired', 1)
+            ->orWhere('expired', 0)
+            ->orderBy('awardTime', 'desc')
+            ->take(2);
     }
 }

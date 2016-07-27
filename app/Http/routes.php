@@ -61,16 +61,14 @@ Route::get('/pk10', function () {
 });
 
 Route::get('/ajax', function() use ($calAwardTimeInterval) {
-    $periodNumber = \Cache::get('periodNumber');
-
-    $Racing = App\Racing::OfCurrentAndNext($periodNumber)->get();
+    $Racing = App\Racing::OfCurrentAndNext()->get();
 
     $res = collect([]);
     $res['time'] = time();
-    $res['current'] = $Racing[0];
+    $res['current'] = $Racing[1];
 
-    $res['next'] = $Racing[1];
-    $res['next']['awardTimeInterval'] = $calAwardTimeInterval($Racing[1]['awardTime']);
+    $res['next'] = $Racing[0];
+    $res['next']['awardTimeInterval'] = $calAwardTimeInterval($Racing[0]['awardTime']);
     unset($res['next']['awardNumbers']);
     $res['next']['delayTimeInterval'] = 0;
 
@@ -82,12 +80,11 @@ Route::get('now', function () {
 });
 
 Route::get('admin', ['middleware' => 'login', function() use ($calAwardTimeInterval) {
-    $periodNumber = \Cache::get('periodNumber');
-    $Racing = App\Racing::OfCurrentAndNext($periodNumber)->get();
+    $Racing = App\Racing::OfCurrentAndNext()->get();
 
-    $res = $Racing[1];
-    $res['awardTimeInterval'] = $calAwardTimeInterval($Racing[1]['awardTime']);
-    $res['awardNumbers'] = explode(',', $Racing[1]->awardNumbers);
+    $res = $Racing[0];
+    $res['awardTimeInterval'] = $calAwardTimeInterval($Racing[0]['awardTime']);
+    $res['awardNumbers'] = explode(',', $Racing[0]->awardNumbers);
 
     return view('admin', ['mRacing' => $res]);
 }]);
@@ -135,3 +132,8 @@ Route::post('auth/login', function (\Illuminate\Http\Request $request) {
     }
 });
 Route::get('auth/logout', 'Auth\AuthController@getLogout');
+
+Route::get('clear', ['middleware' => 'login', function() use ($calAwardTimeInterval) {
+    \Cache::forget('mRacing');
+    echo '清空缓存';
+}]);
