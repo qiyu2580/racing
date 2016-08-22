@@ -18,7 +18,7 @@
       <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
-  <body>
+  <body onselectstart="return false">
     <div class="container">
         <div class="controller">
             <div class="panel panel-danger">
@@ -28,7 +28,7 @@
                 <span class="pull-right">倒计时: <span id="awardTimeInterval">{{ $mRacing->awardTimeInterval }}</span></span>
               </div>
               <div class="panel-body text-center">
-                <div><span id="awardTime">{{ $mRacing->awardTime }}</span></div>
+                <input type="text" id="changeDate" value="{{ $mRacing->awardTime }}" readonly class="form_datetime form-control text-center" disabled>
               </div>
 
               <!-- List group -->
@@ -56,18 +56,18 @@
     <script src="bootstrap/bootstrap-datetimepicker.zh-CN.js"></script>
 
     <script>
+        var periodNumber = $('#periodNumber').html();
         $('#awardTimeInterval').html(function () {
             $('.panel').removeClass('panel-danger').addClass('panel-primary');
+            $('#changeDate').removeAttr('disabled');
             $( "#items" ).sortable({
                 onUpdate: function () {
-                    var periodNumber = $('#periodNumber').html();
                     var data = $("#items").sortable("toArray").join(',');
                     $.post("update", { awardNumbers : data, periodNumber : periodNumber} );
                 }
             });
 
             countdown();
-            return ($(this).html() / 1E3).toFixed(0);
         });
 
         var timeoutID;
@@ -81,6 +81,8 @@
                     location.reload();
                 } else if (s <= 5) {
                     $('.panel').removeClass('panel-primary').addClass('panel-danger');
+                    $("#changeDate").attr('disabled','disabled');
+
                     $('#items').sortable("destroy");
                     timeoutID = window.setTimeout(countdown, 1000);
                 } else {
@@ -89,6 +91,17 @@
                 return s;
             })
         }
+        $(".form_datetime").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:00',
+            autoclose: true,
+            todayBtn: true,
+            showMeridian: true,
+            minuteStep: 1
+        }).on('changeDate', function(ev){
+            $.post("changeDate", { awardTime : ev.date, periodNumber : periodNumber}, function(awardTimeInterval) {
+                $("#awardTimeInterval").html(awardTimeInterval);
+            });
+        });
     </script>
   </body>
 </html>

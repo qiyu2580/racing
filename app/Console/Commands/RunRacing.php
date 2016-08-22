@@ -48,8 +48,7 @@ class RunRacing extends Command
 
             $this->info('now: '. \Carbon\Carbon::now());
             $this->info('start: '. $mRacing->awardTime);
-            if (\Carbon\Carbon::now()->subSeconds(40); >= $mRacing->awardTime) {
-                \Cache::forever('periodNumber', $mRacing->periodNumber);
+            if (\Carbon\Carbon::now()->subSeconds(35) >= $mRacing->awardTime) {
                 \Event::fire(new \App\Events\CreateRacing($mRacing));
             }
         }

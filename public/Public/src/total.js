@@ -1,3 +1,8 @@
+function reloadTable() {
+    var iframe = window.parent.document.getElementById('table')
+    iframe.src = iframe.src;
+}
+
 function appendZero(a) {
     var b = 0;
     return 10 > a ? b = "0" + a: b = a,
@@ -123,7 +128,7 @@ g_endSpeed = 70,
 maxCarNumber = 10,
 g_endCarBasePos = 40,
 g_endCarFirstPos = -80,
-g_loadTime = 40,
+g_loadTime = 5,
 g_offsetDis = 100,
 g_isRunOver = !1,
 g_starPlayMusicTime = 3,
@@ -361,7 +366,7 @@ pk10 = cc.Layer.extend({
                 g_isAddMaskSpr && a.initCarMask(c)
             }
             var c = b.next.awardTimeInterval,
-            f = b.next.awardTimeInterval / 1E3,
+            f = b.next.awardTimeInterval,
             f = f + Number(b.next.delayTimeInterval);
             a._timeNumber = f.toFixed(0);
             0 < c ? (f += 6, a._timeNumber = f.toFixed(0), a._timeLable.setString(a._timeNumber), a.schedule(a.timeLableRunning, 1)) : (a._timeNumber = 6, a._timeLable.setString(a._timeNumber), a.schedule(a.timeLableRunning, 1))
@@ -388,9 +393,8 @@ pk10 = cc.Layer.extend({
         this._carNumberSpr[c] = d
     },
     timeLableRunning: function() {
-        if (0 < this._timeNumber) this._timeNumber--,
-        this._timeLable.setString(this._timeNumber),
-        5 == this._timeNumber && (g_isMusicPlay ? cc.AudioEngine.getInstance().rewindMusic() : (cc.AudioEngine.getInstance().playMusic(g_music, !0), g_isMusicPlay = !0));
+        if (0 < this._timeNumber)
+            this._timeNumber--, this._timeLable.setString(this._timeNumber), 5 == this._timeNumber && (g_isMusicPlay ? cc.AudioEngine.getInstance().rewindMusic() : (cc.AudioEngine.getInstance().playMusic(g_music, !0), g_isMusicPlay = !0));
         else {
             "function" == typeof beforeStartRunning && beforeStartRunning();
             this.unschedule(this.timeLableRunning);
@@ -622,6 +626,7 @@ MidActionLayer = cc.Layer.extend({
         b.runAction(a)
     },
     initCarSprite: function(a) {
+        reloadTable();
         cc.Director.getInstance().getWinSize();
         g_carNumber = this._numArray = a;
         var b = Number(a[2]) - 1;

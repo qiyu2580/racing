@@ -12,12 +12,7 @@
 */
 
 $calAwardTimeInterval = function ($awardTime) {
-    $calMicrotime = function () {
-        list($usec, $sec) = explode(" ", microtime());
-        return ((float)$usec + (float)$sec);
-    };
-
-    return round(strtotime($awardTime) - $calMicrotime(), 3) * 1000;
+    return \Carbon\Carbon::now()->diffInSeconds($awardTime, false);
 };
 
 $guanjun = function ($mRacing) {
@@ -43,9 +38,12 @@ $longhu = function ($mRacing) {
     return $data;
 };
 
-Route::get('/', function () use ($guanjun, $longhu) {
+Route::get('/', function () {
+    echo \Carbon\Carbon::now();
+    return view('index');
+});
 
-    \Carbon\Carbon::now()->addDay()->toDateString();
+Route::get('/table', function () use ($guanjun, $longhu) {
     $mRacing = \App\Racing::where('expired', 1)->where(
         'awardTime', '<',\Carbon\Carbon::now()->addDay()->toDateString()
         )->where(
@@ -53,7 +51,8 @@ Route::get('/', function () use ($guanjun, $longhu) {
         )->orderBy('periodNumber', 'desc')->get();
     $gj = $guanjun($mRacing);
     $lh = $longhu($mRacing);
-    return view('index', compact('mRacing', 'gj', 'lh'));
+
+    return view('table', compact('mRacing', 'gj', 'lh'));
 });
 
 Route::get('/pk10', function () {
@@ -76,6 +75,11 @@ Route::get('/ajax', function() use ($calAwardTimeInterval) {
 });
 
 Route::get('now', function () {
+    //$hour = \Carbon\Carbon::now()->hour;
+    //$minute = \Carbon\Carbon::now()->minute;
+    //$second = \Carbon\Carbon::now()->second;
+    //echo \Carbon\Carbon::now()->setTime($hour, $minute, 0);
+
     echo \Carbon\Carbon::now();
 });
 
@@ -96,6 +100,18 @@ Route::post('update', ['middleware' => 'login', function (\Illuminate\Http\Reque
     $mRacing = \App\Racing::where('expired', 0)->Where('periodNumber', $periodNumber)->first();
     $mRacing->awardNumbers = $awardNumbers;
     $mRacing->save();
+}]);
+
+Route::post('changeDate', ['middleware' => 'login', function (\Illuminate\Http\Request $request) use ($calAwardTimeInterval)  {
+    $periodNumber = $request->input('periodNumber');
+    $awardTime = $request->input('awardTime');
+    $awardTime = \Carbon\Carbon::parse($awardTime);
+
+    $mRacing = \App\Racing::where('expired', 0)->Where('periodNumber', $periodNumber)->first();
+    $mRacing->awardTime = $awardTime;
+    $mRacing->save();
+
+    return $calAwardTimeInterval($awardTime);
 }]);
 
 Route::get('setting', function() {
