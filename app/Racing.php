@@ -13,8 +13,7 @@ class Racing extends Model
 
     public function scopeOfCurrentAndNext($query)
     {
-        return $query->where('expired', 1)
-            ->orWhere('expired', 0)
+        return $query->where('awardTime', '<=', \Carbon\Carbon::now()->subSeconds(35))
             ->orderBy('awardTime', 'desc')
             ->take(2);
     }

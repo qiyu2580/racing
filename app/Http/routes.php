@@ -39,7 +39,6 @@ $longhu = function ($mRacing) {
 };
 
 Route::get('/', function () {
-    echo \Carbon\Carbon::now();
     return view('index');
 });
 
@@ -84,11 +83,11 @@ Route::get('now', function () {
 });
 
 Route::get('admin', ['middleware' => 'login', function() use ($calAwardTimeInterval) {
-    $Racing = App\Racing::OfCurrentAndNext()->get();
+    $Racing = App\Racing::where('expired', '=', 0)->orderBy('awardTime', 'desc')->first();
 
-    $res = $Racing[0];
-    $res['awardTimeInterval'] = $calAwardTimeInterval($Racing[0]['awardTime']);
-    $res['awardNumbers'] = explode(',', $Racing[0]->awardNumbers);
+    $res = $Racing;
+    $res['awardTimeInterval'] = $calAwardTimeInterval($Racing['awardTime']);
+    $res['awardNumbers'] = explode(',', $Racing->awardNumbers);
 
     return view('admin', ['mRacing' => $res]);
 }]);
